@@ -96,8 +96,8 @@ def detect(score_map, geo_map, timer, score_map_thresh=0.8, box_thresh=0.1, nms_
     timer['restore'] = time.time() - start
     # nms part
     start = time.time()
-    # boxes = nms_locality.nms_locality(boxes.astype(np.float64), nms_thres)
-    boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), nms_thres)
+    boxes = nms_locality.nms_locality(boxes.astype(np.float64), 0.4)
+    #boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), nms_thres)
     timer['nms'] = time.time() - start
 
     if boxes.shape[0] == 0:
@@ -109,6 +109,9 @@ def detect(score_map, geo_map, timer, score_map_thresh=0.8, box_thresh=0.1, nms_
         cv2.fillPoly(mask, box[:8].reshape((-1, 4, 2)).astype(np.int32) // 4, 1)
         boxes[i, 8] = cv2.mean(score_map, mask)[0]
     boxes = boxes[boxes[:, 8] > box_thresh]
+    #from nms import non_max_suppression
+    #print(boxes)
+    #boxes=non_max_suppression(boxes, probs=None, overlapThresh=0.3)
 
     return boxes, timer
 
@@ -121,7 +124,7 @@ def sort_poly(p):
     else:
         return p[[0, 3, 2, 1]]
 
-
+'''
 def main(argv=None):
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_list
@@ -177,7 +180,7 @@ def main(argv=None):
                         FLAGS.output_dir,
                         '{}.txt'.format(
                             os.path.basename(im_fn).split('.')[0]))
-
+                
                     with open(res_file, 'w') as f:
                         for box in boxes:
                             # to avoid submitting errors
@@ -191,6 +194,6 @@ def main(argv=None):
                 if not FLAGS.no_write_images:
                     img_path = os.path.join(FLAGS.output_dir, os.path.basename(im_fn))
                     cv2.imwrite(img_path, im[:, :, ::-1])
-
+'''
 if __name__ == '__main__':
     tf.app.run()

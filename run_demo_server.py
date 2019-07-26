@@ -56,7 +56,7 @@ def get_predictor(checkpoint_path):
     logger.info('Restore from {}'.format(model_path))
     saver.restore(sess, model_path)
 
-    def predictor(img):
+    def predictor(img,name):
         """
         :return: {
             'text_lines': [
@@ -128,12 +128,15 @@ def get_predictor(checkpoint_path):
                     map(float, box.flatten())))
                 tl['score'] = float(score)
                 text_lines.append(tl)
+        from imgClip import imageclip
+        imageclip(text_lines,name)             #通过text_lines剪裁图片。该函数输入为字典和图片名称。
         ret = {
             'text_lines': text_lines,
             'rtparams': rtparams,
             'timing': timer,
         }
-        ret.update(get_host_info())
+
+        #ret.update(get_host_info())
         return ret
 
 
@@ -198,10 +201,16 @@ checkpoint_path = './east_icdar2015_resnet_v1_50_rbox'
 def index_post():
     global predictor
     import io
+    basedir = os.path.abspath(os.path.dirname(__file__))
     bio = io.BytesIO()
     request.files['image'].save(bio)
+    File=request.files.get('image')
+    name=File.filename
+    path=basedir+"/Original/"+name
+    File.seek(0)
+    File.save(path)
     img = cv2.imdecode(np.frombuffer(bio.getvalue(), dtype='uint8'), 1)
-    rst = get_predictor(checkpoint_path)(img)
+    rst = get_predictor(checkpoint_path)(img,name)                    #返回框选坐标
 
     save_result(img, rst)
     return render_template('index.html', session_id=rst['session_id'])

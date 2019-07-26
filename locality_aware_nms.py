@@ -35,7 +35,7 @@ def standard_nms(S, thres):
     return S[keep]
 
 
-def nms_locality(polys, thres=0.3):
+def nms_locality(polys, thres=0.9):
     '''
     locality aware nms of EAST
     :param polys: a N*9 numpy array. first 8 coordinates, then prob
